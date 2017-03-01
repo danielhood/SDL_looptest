@@ -1,10 +1,10 @@
-#include "SDL_config.h"
+#include <SDL2/SDL_config.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 
 
-#include "SDL.h"
+#include <SDL2/SDL.h>
 
 #include "audio.h"
 
@@ -100,11 +100,11 @@ int looptest_runloop() {
 
 	SDL_Log("\n");
 
-	//SDL_PauseAudio(0);
+	SDL_PauseAudio(0);
 
-	//while (!done && (SDL_GetAudioStatus() == SDL_AUDIO_PLAYING)) {
-	//	SDL_Delay(1000);
-	//}
+	while (!done && (SDL_GetAudioStatus() == SDL_AUDIO_PLAYING)) {
+		SDL_Delay(1000);
+	}
 
 	/* Clean up on signal */
 	SDL_CloseAudio();

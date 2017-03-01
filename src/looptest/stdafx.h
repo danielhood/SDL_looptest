@@ -5,11 +5,15 @@
 
 #pragma once
 
+#ifdef MSC_VER
 #include "targetver.h"
+#endif
 
 #include <stdio.h>
-#include <tchar.h>
 
+#ifdef MSC_VER
+#include <tchar.h>
+#endif
 
 
 // TODO: reference additional headers your program requires here

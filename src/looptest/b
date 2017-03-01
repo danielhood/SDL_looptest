@@ -1,0 +1,4 @@
+g++ -c audio.c -o build/audio.o -I include/sdl -I .
+g++ -c looptest.cpp -o build/looptest.o -I include/sdl -I .
+g++ -o build/looptest build/audio.o build/looptest.o -lSDL2
+cp sample.wav build
