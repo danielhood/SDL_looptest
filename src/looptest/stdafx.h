@@ -5,13 +5,13 @@
 
 #pragma once
 
-#ifdef MSC_VER
+#ifdef WIN32
 #include "targetver.h"
 #endif
 
 #include <stdio.h>
 
-#ifdef MSC_VER
+#ifdef WIN32
 #include <tchar.h>
 #endif
 

@@ -1,10 +1,17 @@
+#ifdef WIN32
+#include "SDL_config.h"
+#else
 #include <SDL2/SDL_config.h>
+#endif
 
 #include <stdio.h>
 #include <stdlib.h>
 
-
+#ifdef WIN32
+#include "SDL.h"
+#else
 #include <SDL2/SDL.h>
+#endif
 
 #include "audio.h"
 
