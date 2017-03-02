@@ -71,7 +71,11 @@ int looptest_runloop() {
 		return (1);
 	}
 
-	SDL_strlcpy(filename, "sample.wav", sizeof(filename));
+	// 8 bit sample
+	//SDL_strlcpy(filename, "sample.wav", sizeof(filename));
+
+	// 16 bit sample
+	SDL_strlcpy(filename, "777sample.wav", sizeof(filename));
 
 	if (SDL_LoadWAV(filename, &wave.spec, &wave.sound, &wave.soundlen) == NULL) {
 		SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load %s: %s\n", filename, SDL_GetError());
@@ -98,8 +102,8 @@ int looptest_runloop() {
 	SDL_Log("\nSDL_AudioSpec:");
 	SDL_Log("freq: %i", wave.spec.freq);
 	SDL_Log("channels: %i", wave.spec.channels);
-	SDL_Log("samples: %i", wave.spec.samples);
-	SDL_Log("buffer size: %i", wave.spec.size);
+	SDL_Log("buffer size (samples): %i", wave.spec.samples);
+	SDL_Log("buffer size (bytes): %i", wave.spec.size);
 	SDL_Log("format.bitsize: %i", SDL_AUDIO_BITSIZE(wave.spec.format));
 	SDL_Log("format.isfloat: %i", SDL_AUDIO_ISFLOAT(wave.spec.format));
 	SDL_Log("format.isbigendian: %i", SDL_AUDIO_ISBIGENDIAN(wave.spec.format));
