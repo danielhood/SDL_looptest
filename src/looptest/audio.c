@@ -25,8 +25,14 @@ struct
 
 static int done = 0;
 
+#ifdef WIN32
+static int buffersize = 16384;
+static Uint8 delaybfr[16384 * 4];
+#else
+static int buffersize = 8192;
+static Uint8 delaybfr[8192 * 4];
+#endif
 
-static Uint8 delaybfr[8192*4];
 
 static void
 quit(int rc)
@@ -63,21 +69,27 @@ fillerup(void *unused, Uint8 * stream, int len)
 void SDLCALL
 fillerup_delay(void *unused, Uint8 * stream, int len)
 {
-	//SDL_Log("%i", len);
-	// curretly assumes 8192 bytes each request
+	SDL_Log("%i", len);
+	// curretly assumes buffersize bytes each request
 	
 	// shift everything down the buffer
-	Uint8 *waveptr = delaybfr+8192;
-	memcpy(delaybfr, waveptr, 8192*3);
+	Uint8 *waveptr = delaybfr + buffersize;
+
+	SDL_Log("copying...");
+	memcpy(delaybfr, waveptr, buffersize*3);
 	
 	int waveleft;
+
+	SDL_Log("setting...");
 
 	/* Set up the pointers */
 	waveptr = wave.sound + wave.soundpos;
 	waveleft = wave.soundlen - wave.soundpos;
 
 	// copy the new block to the end of the delay buffer
-	Uint8* delayptr = delaybfr+8192*3;
+	Uint8* delayptr = delaybfr + buffersize*3;
+
+	SDL_Log("sourcing...");
 
 	/* Go! */
 	while (waveleft <= len) {
@@ -89,15 +101,21 @@ fillerup_delay(void *unused, Uint8 * stream, int len)
 		wave.soundpos = 0;
 	}
 
-	SDL_memcpy(delayptr, waveptr, len);
+	SDL_Log("final source...%i", len);
+
+	memcpy(delayptr, waveptr, len);
+
+	SDL_Log("updating soundpos...");
 	wave.soundpos += len;
+
+	SDL_Log("mixing...");
 
 	// mix new signal with delayed signal
 	Sint16* mixptr = (Sint16*)delaybfr;
 	// Ptr to the 'live' signal
-	Sint16* sourceptr = ((Sint16*)delaybfr)+4096*3;
+	Sint16* sourceptr = ((Sint16*)delaybfr) + buffersize / 2 *3;
 
-	for(int i=0; i<4096; i++) {
+	for(int i=0; i<buffersize/2; i++) {
 		Sint32 delay = (*mixptr);
 		Sint32 source = (*sourceptr);
 		Sint32 mix =  ((delay*75+source*25)/100); // heavy dealy
@@ -115,7 +133,7 @@ fillerup_delay(void *unused, Uint8 * stream, int len)
 		
 	}	
 		
-	SDL_memcpy(stream, delaybfr, 8192);
+	SDL_memcpy(stream, delaybfr, buffersize);
 }
 
 
@@ -144,6 +162,7 @@ int looptest_runloop() {
 	}
 
 	wave.spec.callback = fillerup_delay;
+	//wave.spec.callback = fillerup;
 
 	/* Show the list of available drivers */
 	SDL_Log("Available audio drivers:");
