@@ -25,6 +25,9 @@ struct
 
 static int done = 0;
 
+
+static Uint8 delaybfr[8192*4];
+
 static void
 quit(int rc)
 {
@@ -57,6 +60,64 @@ fillerup(void *unused, Uint8 * stream, int len)
 	wave.soundpos += len;
 }
 
+void SDLCALL
+fillerup_delay(void *unused, Uint8 * stream, int len)
+{
+	//SDL_Log("%i", len);
+	// curretly assumes 8192 bytes each request
+	
+	// shift everything down the buffer
+	Uint8 *waveptr = delaybfr+8192;
+	memcpy(delaybfr, waveptr, 8192*3);
+	
+	int waveleft;
+
+	/* Set up the pointers */
+	waveptr = wave.sound + wave.soundpos;
+	waveleft = wave.soundlen - wave.soundpos;
+
+	// copy the new block to the end of the delay buffer
+	Uint8* delayptr = delaybfr+8192*3;
+
+	/* Go! */
+	while (waveleft <= len) {
+		memcpy(delayptr, waveptr, waveleft);
+		delayptr += waveleft;
+		len -= waveleft;
+		waveptr = wave.sound;
+		waveleft = wave.soundlen;
+		wave.soundpos = 0;
+	}
+
+	SDL_memcpy(delayptr, waveptr, len);
+	wave.soundpos += len;
+
+	// mix new signal with delayed signal
+	Sint16* mixptr = (Sint16*)delaybfr;
+	// Ptr to the 'live' signal
+	Sint16* sourceptr = ((Sint16*)delaybfr)+4096*3;
+
+	for(int i=0; i<4096; i++) {
+		Sint32 delay = (*mixptr);
+		Sint32 source = (*sourceptr);
+		Sint32 mix =  ((delay*75+source*25)/100); // heavy dealy
+
+		//mix = *sourceptr;
+		*mixptr = (Sint32)mix;
+
+		// add feedback
+		*sourceptr = mix;
+
+		//SDL_Log("%d,%d", mix, mix2);
+
+		++mixptr;
+		++sourceptr;
+		
+	}	
+		
+	SDL_memcpy(stream, delaybfr, 8192);
+}
+
 
 int looptest_runloop() {
 	int i;
@@ -82,7 +143,7 @@ int looptest_runloop() {
 		quit(1);
 	}
 
-	wave.spec.callback = fillerup;
+	wave.spec.callback = fillerup_delay;
 
 	/* Show the list of available drivers */
 	SDL_Log("Available audio drivers:");
