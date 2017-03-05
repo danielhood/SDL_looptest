@@ -6,6 +6,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include "delay.h"
 
 #ifdef WIN32
 #include "SDL.h"
@@ -28,10 +31,15 @@ static int done = 0;
 #ifdef WIN32
 static int buffersize = 16384;
 static Uint8 delaybfr[16384 * 4];
+static Sint16 inputbfr[8192];
+static Sint16 outputbfr[8192];
 #else
 static int buffersize = 8192;
 static Uint8 delaybfr[8192 * 4];
+static Sint16 inputbfr[4096];
+static Sint16 outputbfr[4096];
 #endif
+
 
 
 static void
@@ -69,18 +77,14 @@ fillerup(void *unused, Uint8 * stream, int len)
 void SDLCALL
 fillerup_delay(void *unused, Uint8 * stream, int len)
 {
-	SDL_Log("%i", len);
+	//SDL_Log("%i", len);
 	// curretly assumes buffersize bytes each request
 	
 	// shift everything down the buffer
 	Uint8 *waveptr = delaybfr + buffersize;
-
-	SDL_Log("copying...");
 	memcpy(delaybfr, waveptr, buffersize*3);
 	
 	int waveleft;
-
-	SDL_Log("setting...");
 
 	/* Set up the pointers */
 	waveptr = wave.sound + wave.soundpos;
@@ -88,8 +92,6 @@ fillerup_delay(void *unused, Uint8 * stream, int len)
 
 	// copy the new block to the end of the delay buffer
 	Uint8* delayptr = delaybfr + buffersize*3;
-
-	SDL_Log("sourcing...");
 
 	/* Go! */
 	while (waveleft <= len) {
@@ -101,14 +103,8 @@ fillerup_delay(void *unused, Uint8 * stream, int len)
 		wave.soundpos = 0;
 	}
 
-	SDL_Log("final source...%i", len);
-
 	memcpy(delayptr, waveptr, len);
-
-	SDL_Log("updating soundpos...");
 	wave.soundpos += len;
-
-	SDL_Log("mixing...");
 
 	// mix new signal with delayed signal
 	Sint16* mixptr = (Sint16*)delaybfr;
@@ -136,6 +132,41 @@ fillerup_delay(void *unused, Uint8 * stream, int len)
 	SDL_memcpy(stream, delaybfr, buffersize);
 }
 
+void SDLCALL
+fillerup_delay2(void *unused, Uint8 * stream, int len)
+{
+	//SDL_Log("%i", len);
+	// curretly assumes buffersize bytes each request
+
+	// copy source wave to the working input buffer
+	Uint8 *waveptr;
+	int waveleft;
+
+	/* Set up the pointers */
+	waveptr = wave.sound + wave.soundpos;
+	waveleft = wave.soundlen - wave.soundpos;
+
+	// copy the new block to the end of the delay buffer
+	Uint8* inputptr = (Uint8*)inputbfr;
+
+	/* Go! */
+	while (waveleft <= len) {
+		memcpy(inputptr, waveptr, len);
+		inputptr += waveleft;
+		len -= waveleft;
+		waveptr = wave.sound;
+		waveleft = wave.soundlen;
+		wave.soundpos = 0;
+	}
+
+	memcpy(inputptr, waveptr, len);
+	wave.soundpos += len;
+
+	// Process delay fx
+	delay_process(outputbfr, inputbfr, len);
+
+	SDL_memcpy(stream, outputbfr, buffersize);
+}
 
 int looptest_runloop() {
 	int i;
@@ -161,7 +192,7 @@ int looptest_runloop() {
 		quit(1);
 	}
 
-	wave.spec.callback = fillerup_delay;
+	wave.spec.callback = fillerup_delay2;
 	//wave.spec.callback = fillerup;
 
 	/* Show the list of available drivers */
