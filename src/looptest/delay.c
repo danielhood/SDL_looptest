@@ -3,7 +3,7 @@
 #include <string.h>
 #include "delay.h"
 
-static int delaysize = 5000; // includes both chanels
+static int delaysize = 40000; // includes both chanels
 static short delaybfr[MAX_DELAY_BUF_SIZE];
 
 // Expects interleaved stereo 16-bit signed signal 
