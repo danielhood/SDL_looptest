@@ -3,19 +3,19 @@
 #include <string.h>
 #include "delay.h"
 
-static int delaysize = 10000; // includes both chanels
-static signed __int16 delaybfr[MAX_DELAY_BUF_SIZE];
+static int delaysize = 5000; // includes both chanels
+static short delaybfr[MAX_DELAY_BUF_SIZE];
 
 // Expects interleaved stereo 16-bit signed signal 
-void delay_process(signed __int16* outputbfr, signed __int16* inputbfr, size_t numBytes) {
+void delay_process(short* outputbfr, short* inputbfr, size_t numBytes) {
 	// simply copy input to output
 	//memcpy(outputbfr, inputbfr, numBytes);
 	//return; 
 
-	signed __int16* inputptr = inputbfr;
-	signed __int16* delayptr = delaybfr+delaysize-1;
-	signed __int16* outputptr = outputbfr;
-	signed __int16* feedbackptr = delaybfr;
+	short* inputptr = inputbfr;
+	short* delayptr = delaybfr+delaysize-1;
+	short* outputptr = outputbfr;
+	short* feedbackptr = delaybfr;
 
 	for (unsigned int i = 0; i<numBytes/2; i++) {
 		*delayptr = (*inputptr * 50 + *feedbackptr * 50) / 100;

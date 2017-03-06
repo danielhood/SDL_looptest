@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-	void delay_process(signed __int16* outputbfr, signed __int16* inputbfr, size_t numBytes);
+	void delay_process(short*  outputbfr, short* inputbfr, size_t numBytes);
 
 #ifdef __cplusplus
 }
