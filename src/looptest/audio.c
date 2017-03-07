@@ -150,8 +150,8 @@ fillerup_delay2(void *unused, Uint8 * stream, int len)
 	Uint8* inputptr = (Uint8*)inputbfr;
 
 	/* Go! */
-	while (waveleft <= len) {
-		memcpy(inputptr, waveptr, len);
+	if (waveleft <= len) {
+		memcpy(inputptr, waveptr, waveleft);
 		inputptr += waveleft;
 		len -= waveleft;
 		waveptr = wave.sound;
@@ -163,7 +163,7 @@ fillerup_delay2(void *unused, Uint8 * stream, int len)
 	wave.soundpos += len;
 
 	// Process delay fx
-	delay_process(outputbfr, inputbfr, len);
+	delay_process(outputbfr, inputbfr, buffersize);
 
 	SDL_memcpy(stream, outputbfr, buffersize);
 }
