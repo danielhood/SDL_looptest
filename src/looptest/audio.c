@@ -9,6 +9,7 @@
 #include <string.h>
 
 #include "delay.h"
+#include "reverb.h"
 
 #ifdef WIN32
 #include "SDL.h"
@@ -149,7 +150,6 @@ fillerup_delay2(void *unused, Uint8 * stream, int len)
 	// copy the new block to the end of the delay buffer
 	Uint8* inputptr = (Uint8*)inputbfr;
 
-	/* Go! */
 	if (waveleft <= len) {
 		memcpy(inputptr, waveptr, waveleft);
 		inputptr += waveleft;
@@ -162,8 +162,8 @@ fillerup_delay2(void *unused, Uint8 * stream, int len)
 	memcpy(inputptr, waveptr, len);
 	wave.soundpos += len;
 
-	// Process delay fx
-	delay_process(outputbfr, inputbfr, buffersize);
+	// Process fx
+	reverb_process(outputbfr, inputbfr, buffersize);
 
 	SDL_memcpy(stream, outputbfr, buffersize);
 }
@@ -200,6 +200,8 @@ int looptest_runloop() {
 	for (i = 0; i < SDL_GetNumAudioDrivers(); ++i) {
 		SDL_Log("%i: %s", i, SDL_GetAudioDriver(i));
 	}
+
+	reverb_init();
 
 	/* Initialize fillerup() variables */
 	if (SDL_OpenAudio(&wave.spec, NULL) < 0) {
