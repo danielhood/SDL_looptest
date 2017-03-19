@@ -9,16 +9,16 @@
 static short outbfr[RESNUM][MAX_DELAY_BUF_SIZE]; // buffer for each resonator
 static short* outptr[RESNUM]; // list of pointers for it's current output
 
-static short sources[RESNUM][RESNUM-2]; // each resonator can listen to at most RESNUM - 2 sources (excludes itself and output); holds a RESNUM index
-static short delays[RESNUM][RESNUM-2];  // each source has a delay value associated which is an offest from the source output
+static unsigned short sources[RESNUM][RESNUM-2]; // each resonator can listen to at most RESNUM - 2 sources (excludes itself and output); holds a RESNUM index
+static unsigned int delays[RESNUM][RESNUM-2];  // each source has a delay value associated which is an offest from the source output
 static short* sourceptr[RESNUM][RESNUM-2]; // list of pointers for each source
 
 
 void reverb_init() {
 	for(int i=0; i<RESNUM; i++) {
 		memset(outbfr[RESNUM], 0, MAX_DELAY_BUF_SIZE * sizeof(short));
-		memset(sources[RESNUM], 0, (RESNUM-1) * sizeof(short));
-		memset(delays[RESNUM], 0, (RESNUM-1) * sizeof(short));
+		memset(sources[RESNUM], 0, (RESNUM-2) * sizeof(short));
+		memset(delays[RESNUM], 0, (RESNUM-2) * sizeof(short));
 	}
 
 	// RESNUM0 is input; listens to no one
@@ -100,6 +100,7 @@ void reverb_process(short* outputbfr, short* inputbfr, size_t numBytes) {
 
 		for (int i = 0; i < RESNUM; i++) {
 			if (outptr[i] == outbfr[i]) {
+				printf("reset outptr[%i]\n", i);
 				outptr[i] = outbfr[i] + MAX_DELAY_BUF_SIZE;
 			}
 			--(outptr[i]);
@@ -109,6 +110,7 @@ void reverb_process(short* outputbfr, short* inputbfr, size_t numBytes) {
 
 			for (int j = 0; j < RESNUM-2; j++) {
 				if (sourceptr[i][j] == outbfr[sources[i][j]]) {
+					printf("reset srcptr[%i,%i]\n", i, j);
 					sourceptr[i][j] = outbfr[sources[i][j]] + MAX_DELAY_BUF_SIZE;
 				}
 				--(sourceptr[i][j]);
