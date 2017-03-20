@@ -5,7 +5,7 @@
 #include "reverb.h"
 
 
-#define RESNUM 5 // Number of resonators; res 0 is input and 1 is output
+#define RESNUM 15 // Number of resonators; res 0 is input and 1 is output
 
 static short outbfr[RESNUM][MAX_DELAY_BUF_SIZE]; // buffer for each resonator
 static short* outptr[RESNUM]; // list of pointers for it's current output
@@ -115,7 +115,7 @@ unsigned int calc_delay(short r1, short r2) {
 	int x2 = xpos[r2];
 	int y2 = ypos[r2];
 
-	printf("%i,%i:%i,%i;%i,%i\n", r1, r2, x1, y1, x2, y2);
+	//printf("%i,%i:%i,%i;%i,%i\n", r1, r2, x1, y1, x2, y2);
 
 	long xx = x2-x1;
 	long yy = y2-y1;
@@ -134,7 +134,7 @@ void init_delays() {
 		for (int j=0; j<RESNUM-2; j++) {
 			unsigned int delay = calc_delay(i, sources[i][j]);
 			delays[i][j] = delay;
-			printf("delays[%i,%i]: %i\n", i, j, delays[i][j]);
+			//printf("delays[%i,%i]: %i\n", i, j, delays[i][j]);
 		}
 	}
 }
@@ -196,7 +196,7 @@ void reverb_process(short* outputbfr, short* inputbfr, size_t numBytes) {
 
 		for (int i = 0; i < RESNUM; i++) {
 			if (outptr[i] == outbfr[i]) {
-				printf("reset outptr[%i]\n", i);
+				//printf("reset outptr[%i]\n", i);
 				outptr[i] = outbfr[i] + MAX_DELAY_BUF_SIZE;
 			}
 			--(outptr[i]);
@@ -206,7 +206,7 @@ void reverb_process(short* outputbfr, short* inputbfr, size_t numBytes) {
 
 			for (int j = 0; j < RESNUM-2; j++) {
 				if (sourceptr[i][j] == outbfr[sources[i][j]]) {
-					printf("reset srcptr[%i,%i]\n", i, j);
+					//printf("reset srcptr[%i,%i]\n", i, j);
 					sourceptr[i][j] = outbfr[sources[i][j]] + MAX_DELAY_BUF_SIZE;
 				}
 				--(sourceptr[i][j]);
