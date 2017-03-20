@@ -113,8 +113,17 @@ unsigned int calc_delay(short r1, short r2) {
 	int x1 = xpos[r1];
 	int y1 = ypos[r1];
 	int x2 = xpos[r2];
-	int y2 = ypos[r2];	
-	return 0;
+	int y2 = ypos[r2];
+
+	printf("%i,%i:%i,%i;%i,%i\n", r1, r2, x1, y1, x2, y2);
+
+	long xx = x2-x1;
+	long yy = y2-y1;
+
+	double h = sqrt(xx*xx + yy*yy);
+
+	double delayScale = 1;
+	return h * delayScale;
 }
 
 void init_delays() {
@@ -124,7 +133,8 @@ void init_delays() {
 	for(int i=1; i<RESNUM; i++) {
 		for (int j=0; j<RESNUM-2; j++) {
 			unsigned int delay = calc_delay(i, sources[i][j]);
-			delays[i][j] = delay;	
+			delays[i][j] = delay;
+			printf("delays[%i,%i]: %i\n", i, j, delays[i][j]);
 		}
 	}
 }
@@ -134,7 +144,7 @@ void reverb_init() {
 	init_positions();
 
 	init_sources();
-	init_delays_static();
+	init_delays();
 
 	// Set initial outptrs
 	for (int i = 0; i < RESNUM; i++) {
@@ -162,16 +172,22 @@ void reverb_process(short* outputbfr, short* inputbfr, size_t numBytes) {
 		// Process all resonators including output
 		for (int i = 1; i < RESNUM; i++) {
 			long val = 0;
+			long delayTotal = 0;
 			for (int j = 0; j < RESNUM-2; j++) {
 				val += *(sourceptr[i][j]);
+				//val += *(sourceptr[i][j]) * (2 * r / delays[i][j]);
+				//delayTotal += 2 * r / delays[i][j];
 			}
-			*(outptr[i]) = (short)(val/RESNUM); // even mix for now
+			*(outptr[i]) = (short)(val/(RESNUM-2)); // even mix for now
+			//*(outptr[i]) = (short)(val/delayTotal); // weighted mix by inverse distance
 		}
 
 
 		// Copy reverb output and mix live signal
-		*outputptr = (*(outptr[1]) * 90 + *inputptr * 10) / 100; 
-
+		//*outputptr = (*(outptr[1]) * 90 + *inputptr * 10) / 100; 
+		
+		// Just wet signal
+		*outputptr = *(outptr[1]);
 
 		// Advance all pointers
 		++outputptr;
